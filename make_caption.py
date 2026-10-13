@@ -8,7 +8,7 @@ import requests
 
 from make_post import get_product, download, price_text, OUT, STORE
 
-MODEL = "gemini-2.5-flash"   # if Google says this model is not found, change the name here
+MODEL = "gemini-3.8-flash"   # if Google says this model is not found, change the name here
 API_KEY = os.environ.get("GEMINI_API_KEY")
 
 
