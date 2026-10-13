@@ -1,0 +1,45 @@
+name: Daily SHREYAVA post
+
+on:
+  schedule:
+    - cron: "30 4 * * *"      # 4:30 AM UTC = 10:00 AM India time
+  workflow_dispatch:           # lets you press "Run workflow" to test
+
+permissions:
+  contents: write
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install tools
+        run: pip install -r requirements.txt
+
+      - name: Make image, video and caption
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python daily.py generate
+
+      - name: Save media in the repo (gives Instagram a public link)
+        run: |
+          git config user.name "shreyava-bot"
+          git config user.email "shreyava-bot@users.noreply.github.com"
+          git add -f output
+          git commit -m "Daily media" || echo "Nothing new to save"
+          git push
+
+      - name: Post to Instagram and Facebook
+        env:
+          META_PAGE_TOKEN: ${{ secrets.META_PAGE_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+        run: |
+          export MEDIA_BASE="https://cdn.jsdelivr.net/gh/${{ github.repository }}@$(git rev-parse HEAD)/output"
+          python daily.py publish
